@@ -1,4 +1,4 @@
-﻿using libraryAPI.Models;
+﻿using libraryAPI.Models.Domain;
 using Microsoft.EntityFrameworkCore;
 namespace libraryAPI.Data
 {
@@ -9,7 +9,8 @@ namespace libraryAPI.Data
         }
         public DbSet<Authors> Authors { get; set; }
         public DbSet<Books> Books { get; set; }
-
+        public DbSet<Books_Authors> books_Authors { get; set; }
+        public DbSet<publishers> publishers { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
 

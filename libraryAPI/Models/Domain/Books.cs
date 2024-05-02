@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace libraryAPI.Models
+namespace libraryAPI.Models.Domain
 {
     public class Books
     {
@@ -9,11 +9,11 @@ namespace libraryAPI.Models
         public string title { get; set; }
 
         public string description { get; set; }
-        public  bool Isread { get; set; }
+        public bool Isread { get; set; }
         public DateTime DateRead { get; set; }
 
         public int Rate { get; set; }
-        public int Genre { get; set; }
+        public string Genre { get; set; }
         public string CoverUrl { get; set; }
         public DateTime DateAdded { get; set; }
 

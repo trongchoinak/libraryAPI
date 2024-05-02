@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace libraryAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class LibraryApi : Migration
+    public partial class libraryAPi1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -48,7 +48,7 @@ namespace libraryAPI.Migrations
                     Isread = table.Column<bool>(type: "bit", nullable: false),
                     DateRead = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Rate = table.Column<int>(type: "int", nullable: false),
-                    Genre = table.Column<int>(type: "int", nullable: false),
+                    Genre = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CoverUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DateAdded = table.Column<DateTime>(type: "datetime2", nullable: false),
                     publishersId = table.Column<int>(type: "int", nullable: false)
@@ -65,7 +65,7 @@ namespace libraryAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Books_Authors",
+                name: "books_Authors",
                 columns: table => new
                 {
                     Books_AuthorsID = table.Column<int>(type: "int", nullable: false)
@@ -77,15 +77,15 @@ namespace libraryAPI.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Books_Authors", x => x.Books_AuthorsID);
+                    table.PrimaryKey("PK_books_Authors", x => x.Books_AuthorsID);
                     table.ForeignKey(
-                        name: "FK_Books_Authors_Authors_authorsAuthorID",
+                        name: "FK_books_Authors_Authors_authorsAuthorID",
                         column: x => x.authorsAuthorID,
                         principalTable: "Authors",
                         principalColumn: "AuthorID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Books_Authors_Books_booksBookID",
+                        name: "FK_books_Authors_Books_booksBookID",
                         column: x => x.booksBookID,
                         principalTable: "Books",
                         principalColumn: "BookID",
@@ -98,13 +98,13 @@ namespace libraryAPI.Migrations
                 column: "publishersId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Books_Authors_authorsAuthorID",
-                table: "Books_Authors",
+                name: "IX_books_Authors_authorsAuthorID",
+                table: "books_Authors",
                 column: "authorsAuthorID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Books_Authors_booksBookID",
-                table: "Books_Authors",
+                name: "IX_books_Authors_booksBookID",
+                table: "books_Authors",
                 column: "booksBookID");
         }
 
@@ -112,7 +112,7 @@ namespace libraryAPI.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Books_Authors");
+                name: "books_Authors");
 
             migrationBuilder.DropTable(
                 name: "Authors");
