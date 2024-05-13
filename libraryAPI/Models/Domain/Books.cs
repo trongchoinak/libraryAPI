@@ -10,7 +10,7 @@ namespace libraryAPI.Models.Domain
 
         public string description { get; set; }
         public bool Isread { get; set; }
-        public DateTime DateRead { get; set; }
+        public DateTime? DateRead { get; set; }
 
         public int Rate { get; set; }
         public string Genre { get; set; }

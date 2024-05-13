@@ -1,6 +1,7 @@
 ﻿using libraryAPI.Data;
 using libraryAPI.Models.Domain;
 using Microsoft.EntityFrameworkCore;
+using libraryAPI.Models.DTO;
 namespace libraryAPI.Service
 {
     public class LibraryService:iLibraryService
@@ -83,85 +84,69 @@ namespace libraryAPI.Service
                 return (false, $"An error occured. Error Message: {ex.Message}");
             }
         }
-        public async Task<List<Authors>> GetAuthors()
+        public List<AuthorDTO> GellAllAuthors()
         {
-            try
+            //Get Data From Database -Domain Model 
+            var allAuthorsDomain = _db.Authors.ToList();
+            //Map domain models to DTOs 
+            var allAuthorDTO = new List<AuthorDTO>();
+            foreach (var authorDomain in allAuthorsDomain)
             {
-                return await _db.Authors.ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
-
-        public async Task<Authors> GetAuthorID(int  AuthorID, bool includeBooks)
-        {
-            try
-            {
-                if (includeBooks) // books should be included
+                allAuthorDTO.Add(new AuthorDTO()
                 {
-                    return await _db.Authors.Include(b => b.AuthorID)
-                        .FirstOrDefaultAsync(i => i.AuthorID == AuthorID);
-                }
-
-                // Books should be excluded
-                return await _db.Authors.FindAsync(AuthorID);
+                    Id = authorDomain.AuthorID,
+                    FullName = authorDomain.Fullname
+                });
             }
-            catch (Exception ex)
+            //return DTOs 
+            return allAuthorDTO;
+        }
+        public AuthorNoIdDTO GetAuthorById(int id)
+        {
+            // get book Domain model from Db
+            var authorWithIdDomain = _db.Authors.FirstOrDefault(x => x.AuthorID ==
+           id);
+            if (authorWithIdDomain == null)
             {
                 return null;
             }
+            //Map Domain Model to DTOs 
+            var authorNoIdDTO = new AuthorNoIdDTO
+            {
+                FullName = authorWithIdDomain.Fullname,
+            };
+            return authorNoIdDTO;
         }
-        public async Task<Authors> AddAuthorAsync(Authors author)
+        public AddAuthorRequestDTO AddAuthor(AddAuthorRequestDTO addAuthorRequestDTO)
         {
-            try
+            var authorDomainModel = new Authors
             {
-                await _db.Authors.AddAsync(author);
-                await _db.SaveChangesAsync();
-                return await _db.Authors.FindAsync(author.AuthorID); // Auto ID from DB
-            }
-            catch (Exception ex)
-            {
-                return null; // An error occured
-            }
+                Fullname = addAuthorRequestDTO.FullName,
+            };
+            //Use Domain Model to create Author 
+            _db.Authors.Add(authorDomainModel);
+            _db.SaveChanges();
+            return addAuthorRequestDTO;
         }
-
-        public async Task<Authors> UpdateAuthorAsync(Authors author)
+        public AuthorNoIdDTO UpdateAuthorById(int id, AuthorNoIdDTO authorNoIdDTO)
         {
-            try
+            var authorDomain = _db.Authors.FirstOrDefault(n => n.AuthorID == id);
+            if (authorDomain != null)
             {
-                _db.Entry(author).State = EntityState.Modified;
-                await _db.SaveChangesAsync();
-
-                return author;
+                authorDomain.Fullname = authorNoIdDTO.FullName;
+                _db.SaveChanges();
             }
-            catch (Exception ex)
-            {
-                return null;
-            }
+            return authorNoIdDTO;
         }
-
-        public async Task<(bool, string)> DeleteAuthorAsync(Authors author)
+        public Authors? DeleteAuthorById(int id)
         {
-            try
+            var authorDomain = _db.Authors.FirstOrDefault(n => n.AuthorID == id);
+            if (authorDomain != null)
             {
-                var dbAuthor = await _db.Authors.FindAsync(author.AuthorID);
-
-                if (dbAuthor == null)
-                {
-                    return (false, "Author could not be found");
-                }
-
-                _db.Authors.Remove(author);
-                await _db.SaveChangesAsync();
-
-                return (true, "Author got deleted.");
+                _db.Authors.Remove(authorDomain);
+                _db.SaveChanges();
             }
-            catch (Exception ex)
-            {
-                return (false, $"An error occured. Error Message: {ex.Message}");
-            }
+            return null;
         }
     }
 }

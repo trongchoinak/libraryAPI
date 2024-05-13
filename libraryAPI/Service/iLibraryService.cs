@@ -1,15 +1,15 @@
 ﻿using libraryAPI.Models.Domain;
+using libraryAPI.Models.DTO;
 
 namespace libraryAPI.Service
 {
     public interface iLibraryService
     {
-        Task<List<Authors>> GetAuthors(); // GET All Authors
-        Task<Authors> GetAuthorID(int  AuthorID, bool includeBooks = false); // GET Single Author
-        Task<Authors> AddAuthorAsync(Authors author); // POST New Author
-        Task<Authors> UpdateAuthorAsync(Authors author); // PUT Author
-        Task<(bool, string)> DeleteAuthorAsync(Authors author); // DELETE Author
-
+        List<AuthorDTO> GellAllAuthors();
+        AuthorNoIdDTO GetAuthorById(int id);
+        AddAuthorRequestDTO AddAuthor(AddAuthorRequestDTO addAuthorRequestDTO);
+        AuthorNoIdDTO UpdateAuthorById(int id, AuthorNoIdDTO authorNoIdDTO);
+        Authors DeleteAuthorById(int id);
         // Book Services
         Task<List<Books>> GetBooks(); // GET All Books
         Task<Books> GetBookID(Guid BookID); // Get Single Book
