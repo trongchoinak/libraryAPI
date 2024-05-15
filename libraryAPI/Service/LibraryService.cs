@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using libraryAPI.Models.DTO;
 namespace libraryAPI.Service
 {
-    public class LibraryService:iLibraryService
+    public class LibraryService : iLibraryService
     {
         private readonly libraryAPIDbcontext _db;
         public LibraryService(libraryAPIDbcontext db)
@@ -12,79 +12,129 @@ namespace libraryAPI.Service
             _db = db;
         }
 
-        public async Task<List<Books>> GetBooks()
+        public List<BookWithAuthorAndPublisherDTO> GetAllBooks(string? filterOn = null, string?
+filterQuery = null)
         {
-            try
+            var allBooks = _db.Books.Select(Books => new BookWithAuthorAndPublisherDTO()
             {
-                return await _db.Books.ToListAsync();
-            }
-            catch (Exception ex)
+                Id = Books.BookID,
+                Title = Books.title,
+                Description = Books.description,
+                IsRead = Books.Isread,
+                DateRead = Books.Isread ? Books.DateRead.Value : null,
+                Rate = Books.Isread ? Books.Rate : null,
+                Genre = Books.Genre,
+                CoverUrl = Books.CoverUrl,
+                PublisherName = Books.publishers.publishersName,
+                AuthorName = Books.books_Authors.Select(n => n. authors.Fullname).ToList()
+            }).AsQueryable();
+            //filtering
+            if (string.IsNullOrWhiteSpace(filterOn) == false &&
+           string.IsNullOrWhiteSpace(filterQuery) == false)
             {
-                return null;
-            }
-        }
-        public async Task<Books> GetBookID(Guid BookID)
-        {
-            try
-            {
-                return await _db.Books.FindAsync(BookID);
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
-        public async Task<Books> CreateBooks(Books book)
-        {
-            try
-            {
-                await _db.Books.AddAsync(book);
-                await _db.SaveChangesAsync();
-                return await _db.Books.FindAsync(book.BookID);
-            }
-            catch (Exception ex)
-            {
-                return null; // An error occured
-            }
-        }
-
-        public async Task<Books> UpdateBookAsync(Books book)
-        {
-            try
-            {
-                _db.Entry(book).State = EntityState.Modified;
-                await _db.SaveChangesAsync();
-
-                return book;
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
-
-        public async Task<(bool, string)> DeleteBookAsync(Books book)
-        {
-            try
-            {
-                var dbBook = await _db.Books.FindAsync(book.BookID);
-
-                if (dbBook == null)
+                if (filterOn.Equals("title", StringComparison.OrdinalIgnoreCase))
                 {
-                    return (false, "Book could not be found.");
+                    allBooks = allBooks.Where(x => x.Title.Contains(filterQuery));
                 }
-
-                _db.Books.Remove(book);
-                await _db.SaveChangesAsync();
-
-                return (true, "Book got deleted.");
             }
-            catch (Exception ex)
-            {
-                return (false, $"An error occured. Error Message: {ex.Message}");
-            }
+            return allBooks.ToList();
         }
-        public List<AuthorDTO> GellAllAuthors()
+        public BookWithAuthorAndPublisherDTO GetBookById(int id)
+        {
+            var bookWithDomain = _db.Books.Where(n => n.BookID == id);
+            //Map Domain Model to DTOs
+            var bookWithIdDTO = bookWithDomain.Select(book => new
+           BookWithAuthorAndPublisherDTO()
+            {
+                Id = book.BookID,
+                Title = book.title,
+                Description = book.description,
+                IsRead = book.Isread,
+                DateRead = book.DateRead,
+                Rate = book.Rate,
+                Genre = book.Genre,
+                CoverUrl = book.CoverUrl,
+                PublisherName = book.publishers.publishersName,
+                AuthorName = book.books_Authors.Select(n => n.authors.Fullname).ToList()
+            }).FirstOrDefault();
+            return bookWithIdDTO;
+        }
+        public AddBookRequestDTO AddBook(AddBookRequestDTO addBookRequestDTO)
+        {
+            //map DTO to Domain Model
+            var bookDomainModel = new Books
+            {
+                title = addBookRequestDTO.Title,
+                description = addBookRequestDTO.Description,
+                Isread = addBookRequestDTO.IsRead,
+                DateRead = addBookRequestDTO.DateRead,
+                Rate = addBookRequestDTO.Rate,
+                Genre = addBookRequestDTO.Genre,
+                CoverUrl = addBookRequestDTO.CoverUrl,
+                DateAdded = addBookRequestDTO.DateAdded,
+                publishersId = addBookRequestDTO.PublisherId
+            };
+            //Use Domain Model to add Book 
+            _db.Books.Add(bookDomainModel);
+            _db.SaveChanges();
+            foreach (var id in addBookRequestDTO.AuthorIds)
+            {
+                var _book_author = new Books_Authors()
+                {
+                    BookID = bookDomainModel.BookID,
+                    AuthorID = id
+                };
+                _db.books_Authors.Add(_book_author);
+                _db.SaveChanges();
+            }
+            return addBookRequestDTO;
+        }
+        public AddBookRequestDTO? UpdateBookById(int id, AddBookRequestDTO bookDTO)
+        {
+            var bookDomain = _db.Books.FirstOrDefault(n => n.BookID == id);
+            if (bookDomain != null)
+            {
+                bookDomain.title = bookDTO.Title;
+                bookDomain.description = bookDTO.Description;
+                bookDomain.Isread = bookDTO.IsRead;
+                bookDomain.DateRead = bookDTO.DateRead;
+                bookDomain.Rate = bookDTO.Rate;
+                bookDomain.Genre = bookDTO.Genre;
+                bookDomain.CoverUrl = bookDTO.CoverUrl;
+                bookDomain.DateAdded = bookDTO.DateAdded;
+                bookDomain.publishersId = bookDTO.PublisherId;
+                _db.SaveChanges();
+            }
+            var authorDomain = _db.books_Authors.Where(a => a.BookID == id).ToList();
+            if (authorDomain != null)
+            {
+                _db.books_Authors.RemoveRange(authorDomain);
+                _db.SaveChanges();
+            }
+            foreach (var authorid in bookDTO.AuthorIds)
+            {
+                var _book_author = new Books_Authors()
+                {
+                    BookID = id,
+                    AuthorID = authorid
+                };
+                _db.books_Authors.Add(_book_author);
+                _db.SaveChanges();
+            }
+            return bookDTO;
+        }
+        public Books? DeleteBookById(int id)
+        {
+            var bookDomain = _db.Books.FirstOrDefault(n => n.BookID == id);
+            if (bookDomain != null)
+            {
+                _db.Books.Remove(bookDomain);
+                _db.SaveChanges();
+            }
+            return bookDomain;
+        }
+    
+    public List<AuthorDTO> GellAllAuthors()
         {
             //Get Data From Database -Domain Model 
             var allAuthorsDomain = _db.Authors.ToList();

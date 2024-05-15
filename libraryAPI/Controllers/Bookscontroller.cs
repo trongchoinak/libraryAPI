@@ -3,140 +3,68 @@ using libraryAPI.Service;
 using libraryAPI.Models.Domain;
 using libraryAPI.Data;
 using libraryAPI.Models.DTO;
+using System;
+using Microsoft.AspNetCore.Authorization;
+using System.Text.Json;
 namespace libraryAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class Bookscontroller : ControllerBase
+    [Authorize]
+    public class BooksController : ControllerBase
     {
-        protected readonly libraryAPIDbcontext _libraryAPIDbcontext;
-        public Bookscontroller(libraryAPIDbcontext libraryAPIDbcontext)
+        private readonly libraryAPIDbcontext _dbContext;
+        private readonly iLibraryService iLibraryService;
+        private readonly ILogger<BooksController> _logger;
+        public BooksController(libraryAPIDbcontext dbContext, iLibraryService bookRepository, ILogger<BooksController> logger)
         {
-            this._libraryAPIDbcontext = libraryAPIDbcontext;
+            _dbContext = dbContext;
+            iLibraryService = bookRepository;
+            _logger = logger;
+        }
+        [HttpGet("get-all-books")]
+        [Authorize(Roles = "Read")]
+        public IActionResult GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery)
+        {
+            _logger.LogInformation("GetAll Book Action method was invoked");
+            _logger.LogWarning("This is a warning log");
+            _logger.LogError("This is a error log");
+            // su dung reposity pattern 
+            var allBooks = iLibraryService.GetAllBooks(filterOn, filterQuery);
+            _logger.LogInformation($"Finished GetAllBook request with data { JsonSerializer.Serialize(allBooks)}");
+            return Ok(allBooks);
         }
         [HttpGet]
-        public IActionResult GetallBooks()
-        {
-            var allBooksDomain = _libraryAPIDbcontext.Books;
-            var allBooksDTO = allBooksDomain.Select(Books => new BookWithAuthorAndPublisherDTO()
-            {
-                Id = Books.BookID,
-                Title = Books.title,
-                Description = Books.description,
-                IsRead = Books.Isread,
-                DateRead = Books.Isread ? Books.DateRead : null,
-                Rate = Books.Isread ? Books.Rate : null,
-                Genre = Books.Genre,
-                CoverUrl = Books.CoverUrl,
-                PublisherName = Books.publishers.publishersName,
-                AuthorName = Books.books_Authors.Select(n => n.authors.Fullname).ToList()
-            }).ToList();
-            return Ok(allBooksDTO);
-        }
-        [HttpGet]
+        [Authorize(Roles = "Read")]
         [Route("get-book-by-id/{id}")]
         public IActionResult GetBookById([FromRoute] int id)
         {
-            var BookWithDomian = _libraryAPIDbcontext.Books.Where(n => n.BookID == id);
-            if (BookWithDomian == null)
-            {
-                return NotFound();
-            }
-            var BookWithIdDTO = BookWithDomian.Select(Books => new BookWithAuthorAndPublisherDTO()
-            {
-                Id = Books.BookID,
-                Title = Books.title,
-                Description = Books.description,
-                IsRead = Books.Isread,
-                DateRead = Books.Isread ? Books.DateRead : null,
-                Rate = Books.Isread ? Books.Rate : null,
-                Genre = Books.Genre,
-                CoverUrl = Books.CoverUrl,
-                PublisherName = Books.publishers.publishersName,
-                AuthorName = Books.books_Authors.Select(n => n.authors.Fullname).ToList()
-            });
-            return Ok(BookWithIdDTO);
+            var bookWithIdDTO = iLibraryService.GetBookById(id);
+            return Ok(bookWithIdDTO);
         }
-        [HttpPost("add-book")]
+        [HttpPost]
+        [Authorize(Roles = "Write")]
         public IActionResult AddBook([FromBody] AddBookRequestDTO addBookRequestDTO)
         {
-            var bookDomainModel = new Books
-            {
-                title = addBookRequestDTO.Title ?? "Untitled",
-                description = addBookRequestDTO.Description ?? "Untitled",
-                Isread = addBookRequestDTO.IsRead,
-                DateRead = addBookRequestDTO.DateRead,
-                Rate = addBookRequestDTO.Rate,
-                Genre = addBookRequestDTO.Genre,
-                CoverUrl = addBookRequestDTO.CoverUrl,
-                DateAdded = addBookRequestDTO.DateAdded,
-                publishersId = addBookRequestDTO.PublisherId
-            };
-            _libraryAPIDbcontext.Books.Add(bookDomainModel);
-            _libraryAPIDbcontext.SaveChanges();
-            foreach (var id in addBookRequestDTO.AuthorIds)
-            {
-                var _book_author = new Books_Authors()
-                {
-                    BookID = bookDomainModel.BookID,
-                    AuthorID = id
-                };
-                _libraryAPIDbcontext.books_Authors.Add(_book_author);
-                _libraryAPIDbcontext.SaveChanges();
-            }
-            return Ok();
+            var bookAdd = iLibraryService.AddBook(addBookRequestDTO);
+            return Ok(bookAdd);
         }
         [HttpPut("update-book-by-id/{id}")]
+        [Authorize(Roles = "Write")]
         public IActionResult UpdateBookById(int id, [FromBody] AddBookRequestDTO bookDTO)
         {
-            var bookDomain = _libraryAPIDbcontext.Books.FirstOrDefault(n => n.BookID == id);
-            if (bookDomain != null)
-            {
-                bookDomain.title = bookDTO.Title ?? "Untitled";
-                bookDomain.description = bookDTO.Description ?? "Untitled";
-                bookDomain.Isread = bookDTO.IsRead;
-                bookDomain.DateRead = bookDTO.DateRead;
-                bookDomain.Rate = bookDTO.Rate;
-                bookDomain.Genre = bookDTO.Genre;
-                bookDomain.CoverUrl = bookDTO.CoverUrl;
-                bookDomain.DateAdded = bookDTO.DateAdded;
-                bookDomain.publishersId = bookDTO.PublisherId;
-                _libraryAPIDbcontext.SaveChanges();
-            }
-            var authorDomain = _libraryAPIDbcontext.books_Authors.Where(a => a.BookID == id).ToList();
-            if (authorDomain != null)
-            {
-                _libraryAPIDbcontext.books_Authors.RemoveRange(authorDomain);
-                _libraryAPIDbcontext.SaveChanges();
-            }
-            foreach (var authorid in bookDTO.AuthorIds)
-            {
-                var _book_author = new Books_Authors()
-                {
-                    BookID = id,
-                    AuthorID = authorid,
-                };
-
-                _libraryAPIDbcontext.books_Authors.Add(_book_author);
-                _libraryAPIDbcontext.SaveChanges();
-            }
-            return Ok(bookDTO);
+            var updateBook = iLibraryService.UpdateBookById(id, bookDTO);
+            return Ok(updateBook);
         }
         [HttpDelete("delete-book-by-id/{id}")]
+        [Authorize(Roles = "Write")]
         public IActionResult DeleteBookById(int id)
         {
-            var bookDomain = _libraryAPIDbcontext.Books.FirstOrDefault(n => n.BookID == id);
-            if (bookDomain != null)
-            {
-                _libraryAPIDbcontext.Books.Remove(bookDomain);
-                _libraryAPIDbcontext.SaveChanges();
-            }
-            return Ok();
+            var deleteBook = iLibraryService.DeleteBookById(id);
+            return Ok(deleteBook);
         }
-
     }
-}
-        
+}     
         /*
         [HttpGet("{id}")]
         public async Task<IActionResult> GetBooks(Guid id)

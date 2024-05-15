@@ -11,11 +11,13 @@ namespace libraryAPI.Service
         AuthorNoIdDTO UpdateAuthorById(int id, AuthorNoIdDTO authorNoIdDTO);
         Authors DeleteAuthorById(int id);
         // Book Services
-        Task<List<Books>> GetBooks(); // GET All Books
-        Task<Books> GetBookID(Guid BookID); // Get Single Book
-        Task<Books> CreateBooks(Books book); // POST New Book
-        Task<Books> UpdateBookAsync(Books book); // PUT Book
-        Task<(bool, string)> DeleteBookAsync(Books book); // DELETE Book
+
+        List<BookWithAuthorAndPublisherDTO> GetAllBooks(string? filterOn = null, string?
+       filterQuery = null);
+        BookWithAuthorAndPublisherDTO GetBookById(int id);
+        AddBookRequestDTO AddBook(AddBookRequestDTO addBookRequestDTO);
+        AddBookRequestDTO? UpdateBookById(int id, AddBookRequestDTO bookDTO);
+        Books? DeleteBookById(int id);
 
 
     }
