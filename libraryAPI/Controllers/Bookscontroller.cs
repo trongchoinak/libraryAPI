@@ -10,7 +10,7 @@ namespace libraryAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+   
     public class BooksController : ControllerBase
     {
         private readonly libraryAPIDbcontext _dbContext;
@@ -23,7 +23,7 @@ namespace libraryAPI.Controllers
             _logger = logger;
         }
         [HttpGet("get-all-books")]
-        [Authorize(Roles = "Read")]
+      
         public IActionResult GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery)
         {
             _logger.LogInformation("GetAll Book Action method was invoked");
@@ -35,7 +35,7 @@ namespace libraryAPI.Controllers
             return Ok(allBooks);
         }
         [HttpGet]
-        [Authorize(Roles = "Read")]
+    
         [Route("get-book-by-id/{id}")]
         public IActionResult GetBookById([FromRoute] int id)
         {
@@ -43,7 +43,7 @@ namespace libraryAPI.Controllers
             return Ok(bookWithIdDTO);
         }
         [HttpPost]
-        [Authorize(Roles = "Write")]
+ 
         public IActionResult AddBook([FromBody] AddBookRequestDTO addBookRequestDTO)
         {
             var bookAdd = iLibraryService.AddBook(addBookRequestDTO);

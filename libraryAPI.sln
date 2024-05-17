@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libraryAPI", "libraryAPI\libraryAPI.csproj", "{FFD9DB87-2AD9-4FA0-8AE5-92331277A330}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "libraryAPI", "libraryAPI\libraryAPI.csproj", "{FFD9DB87-2AD9-4FA0-8AE5-92331277A330}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mvc", "Mvc\Mvc.csproj", "{C511F564-A77B-419E-8F02-CCC6B17C5BE8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{FFD9DB87-2AD9-4FA0-8AE5-92331277A330}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FFD9DB87-2AD9-4FA0-8AE5-92331277A330}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FFD9DB87-2AD9-4FA0-8AE5-92331277A330}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C511F564-A77B-419E-8F02-CCC6B17C5BE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C511F564-A77B-419E-8F02-CCC6B17C5BE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C511F564-A77B-419E-8F02-CCC6B17C5BE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C511F564-A77B-419E-8F02-CCC6B17C5BE8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
